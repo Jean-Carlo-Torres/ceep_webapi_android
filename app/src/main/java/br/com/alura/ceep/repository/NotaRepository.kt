@@ -6,6 +6,7 @@ import br.com.alura.ceep.webclient.NotaWebClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class NotaRepository(
@@ -16,10 +17,13 @@ class NotaRepository(
         return dao.buscaTodas()
     }
 
-    suspend fun atualizaTodas() {
+    private suspend fun atualizaTodas() {
         withContext(IO) {
             webClient.buscaTodas()?.let { notas ->
-                dao.salva(notas)
+                val notasSincronizadas = notas.map { nota ->
+                    nota.copy(sincronizada = true)
+                }
+                dao.salva(notasSincronizadas)
             }
         }
     }
@@ -34,6 +38,17 @@ class NotaRepository(
 
     suspend fun salva(nota: Nota) {
         dao.salva(nota)
-        webClient.salva(nota)
+        if (webClient.salva(nota)) {
+            val notaSincronizada = nota.copy(sincronizada = true)
+            dao.salva(notaSincronizada)
+        }
+    }
+
+    suspend fun sincroniza() {
+        val notasNaoSincronizadas = dao.buscaNaoSincronizadas().first()
+        notasNaoSincronizadas.forEach { notaNaoSincronizada ->
+            salva(notaNaoSincronizada)
+        }
+        atualizaTodas()
     }
 }

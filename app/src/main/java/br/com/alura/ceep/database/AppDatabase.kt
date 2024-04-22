@@ -9,12 +9,12 @@ import br.com.alura.ceep.database.dao.NotaDao
 import br.com.alura.ceep.model.Nota
 
 @Database(
-    version = 2,
+    version = 3,
     entities = [Nota::class],
     exportSchema = true,
 
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 2, to = 3)
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
