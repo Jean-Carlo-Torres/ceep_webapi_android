@@ -14,7 +14,7 @@ import br.com.alura.ceep.model.Nota
     exportSchema = true,
 
     autoMigrations = [
-        AutoMigration(from = 3, to = 4)
+        AutoMigration(from = 2, to = 4)
     ]
 )
 abstract class AppDatabase : RoomDatabase() {

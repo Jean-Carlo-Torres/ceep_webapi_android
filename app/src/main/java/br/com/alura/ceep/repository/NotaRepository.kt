@@ -3,7 +3,6 @@ package br.com.alura.ceep.repository
 import br.com.alura.ceep.database.dao.NotaDao
 import br.com.alura.ceep.model.Nota
 import br.com.alura.ceep.webclient.NotaWebClient
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -33,8 +32,10 @@ class NotaRepository(
     }
 
     suspend fun remove(id: String) {
-        dao.remove(id)
-        webClient.remove(id)
+        dao.desativa(id)
+        if (webClient.remove(id)) {
+            dao.remove(id)
+        }
     }
 
     suspend fun salva(nota: Nota) {
@@ -46,6 +47,10 @@ class NotaRepository(
     }
 
     suspend fun sincroniza() {
+        val notasDesativadas = dao.buscaDesativadas().first()
+        notasDesativadas.forEach { notaDesativada ->
+            remove(notaDesativada.id)
+        }
         val notasNaoSincronizadas = dao.buscaNaoSincronizadas().first()
         notasNaoSincronizadas.forEach { notaNaoSincronizada ->
             salva(notaNaoSincronizada)
